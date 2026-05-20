@@ -12,6 +12,7 @@ import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -51,21 +52,23 @@ public class ExpenseService {
                 .title(body.get("title").toString())
                 .amount(new BigDecimal(body.get("amount").toString()))
                 .date(LocalDate.parse(body.get("date").toString()))
-                .description(body.getOrDefault("description", "").toString())
-                .isRecurring(Boolean.parseBoolean(
-                        body.getOrDefault("isRecurring", "false").toString()))
+                .description(body.get("description") != null
+                        ? body.get("description").toString() : "")
+                .isRecurring(body.get("isRecurring") != null
+                        && Boolean.parseBoolean(
+                        body.get("isRecurring").toString()))
                 .category(category)
                 .user(user)
                 .build();
 
         expenseRepository.save(expense);
 
-        return Map.of(
-                "message", "Expense added successfully",
-                "id", expense.getId(),
-                "title", expense.getTitle(),
-                "amount", expense.getAmount()
-        );
+        Map<String, Object> response = new HashMap<>();
+        response.put("message", "Expense added successfully");
+        response.put("id", expense.getId() != null ? expense.getId() : 0);
+        response.put("title", expense.getTitle());
+        response.put("amount", expense.getAmount());
+        return response;
     }
 
     public Map<String, Object> updateExpense(Long id, Map<String, Object> body) {
@@ -80,19 +83,19 @@ public class ExpenseService {
 
         if (body.containsKey("title"))
             expense.setTitle(body.get("title").toString());
-
         if (body.containsKey("amount"))
             expense.setAmount(new BigDecimal(body.get("amount").toString()));
-
         if (body.containsKey("date"))
             expense.setDate(LocalDate.parse(body.get("date").toString()));
-
         if (body.containsKey("description"))
             expense.setDescription(body.get("description").toString());
 
         expenseRepository.save(expense);
 
-        return Map.of("message", "Expense updated", "id", expense.getId());
+        Map<String, Object> response = new HashMap<>();
+        response.put("message", "Expense updated");
+        response.put("id", expense.getId());
+        return response;
     }
 
     public Map<String, Object> deleteExpense(Long id) {
@@ -106,6 +109,9 @@ public class ExpenseService {
         }
 
         expenseRepository.delete(expense);
-        return Map.of("message", "Expense deleted successfully");
+
+        Map<String, Object> response = new HashMap<>();
+        response.put("message", "Expense deleted successfully");
+        return response;
     }
 }
